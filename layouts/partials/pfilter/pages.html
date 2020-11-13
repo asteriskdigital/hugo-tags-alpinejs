@@ -1,0 +1,112 @@
+{{ $pages := .pages }}
+{{ $attrs := .attrs }}
+{{ $context := .context }}
+{{ $hideclass := .hideclass }}
+
+<div class="pfilter-page-list-container">
+{{ range $pages }}
+    {{ $page := . }}
+    {{ $elattrs := slice }}
+    {{ $ea := dict }}
+    {{ range $attrs }}
+        {{ if eq . ".Section" }}
+            {{ with $page.Section }}
+            {{ $ea = merge $ea (dict ".Section" (slice .) ) }}
+            {{ $elattrs = $elattrs | append (print ".section__" .) }}
+            {{ end }}
+        {{ else if eq . ".Type" }}
+            {{ $ea = merge $ea (dict ".Type" (slice $page.Type) ) }}
+            {{ $elattrs = $elattrs | append (print ".type__" $page.Type) }}
+        {{ else if eq . ".Kind" }}
+            {{ $ea = merge $ea (dict ".Kind" (slice $page.Kind) ) }}
+            {{ $elattrs = $elattrs | append  (print ".kind__" $page.Kind) }}
+        {{ else }}
+            {{ if isset $page.Params . }}
+                {{ $a := . }}
+                {{ $ea = merge $ea (dict . (index $page.Params .) ) }}
+                {{ range (index $page.Params .)}}
+                    {{ $elattrs = $elattrs | append (print $a "__" (urlize .)) }}
+                {{ end }}
+            {{ end }}
+        {{ end }}
+    {{ end }}
+
+    <div class="pfilter-page-list-item" x-bind:class="checkVisibility([{{range $elattrs}}'{{.}}',{{end}}])">
+        <div class="pfilter-page-list-card">
+
+            <div class="pfilter-page-list-card-title"><a href="{{.Permalink}}">{{.Title}}</a></div>
+            <div class="pfilter-page-list-card-attrs">
+                {{ range $k, $v := $ea }}
+                    <div class="pfilter-attr-list-container">
+                        <span class="pfilter-attr-list-label">{{ $k }}</span>
+                        <div  class="pfilter-attr-item-list">
+                        {{ range $v }}
+                            <span 
+                                    class="pfilter-attr-item" 
+                                    x-bind:class="checkActive(['{{(print $k "__" (urlize .))}}'])"
+                                    @click="toggle('{{$k}}', '{{urlize .}}')"
+                            >
+                                {{.}}
+                            </span>
+                        {{ end }}
+                        </div>
+                </div>
+                {{ end }}
+                <hr>
+            </div>
+            <div class="pfilter-page-list-card-content" >
+                {{ with $page.Summary }}{{ . }}{{ end }}
+            </div>
+        </div>
+    </div>
+
+{{ end }}
+</div>
+
+<script>
+
+    function filtered(){
+    
+        
+        return {
+            visible: [],
+            checkVisibility(l,c) {
+                if(this.visible.length == 0) {
+                    return ""
+                } else {
+                    let result = "x";
+                    for(let i in l) {
+                        if (this.visible.indexOf(l[i]) > -1) {
+                            return (c ? c : "")
+                        } 
+                    }
+                    return "{{$hideclass}}"
+                }
+            },
+            checkActive(x){
+                if(this.visible.length > 0 ) {
+                    if (this.visible.indexOf(x[0]) > -1 ) {
+                        return "selected"
+                    }
+                }
+                return ''
+            },
+            toggle(x,y) {
+                console.log("TOGGLE:", x, y)
+                let attr = x + "__" + y;
+                let li = this.visible.indexOf(attr);
+                if( li > -1 ) {
+                    this.visible.splice(li,1)
+                } else {
+                    this.visible.push(attr)
+                }
+    
+            },
+            clear(){
+                this.visible = [];
+            },
+            init() {
+            }
+        }
+    }
+</script>

@@ -1,0 +1,77 @@
+
+{{ $context := .context }}
+{{ $attrs := .attrs }}
+{{ $attrlist := slice }}
+<div x-data="filtered()" x-init="init()">
+
+<ul class="pfilter-attr-container">
+
+{{ range $attrs }}
+    {{ if eq . ".Section" }}
+    <li class="pfilter-attr">
+        <span class="pfilter-attr-title">.Section</span>
+        <ul class="pfilter-attr-val-list">
+        {{ range site.Home.Sections }}
+            {{ $attrlist = $attrlist | append (print ".section__" .Section)}}
+            <li class="pfilter-attr-val" @click="toggle('.section', '{{.Section}}')" x-bind:class="checkActive(['{{(print ".section__" (urlize .Section))}}'])">
+                {{ .Section }}
+            </li>
+        {{ end }}
+        </ul>
+    </li>
+    {{ else if eq . ".Type" }}
+    <li class="pfilter-attr">
+        <span class="pfilter-attr-title">.Type</span>
+        <ul class="pfilter-attr-val-list">
+        {{ range site.RegularPages }}
+            {{ if not (in $attrlist (print ".type__" .Type) )}}
+            {{ $attrlist = $attrlist | append (print ".type__" .Type ) }}
+            <li class="pfilter-attr-val" @click="toggle('.type', '{{.Type}}')" x-bind:class="checkActive(['{{(print ".type__" (urlize .Type))}}'])">
+                {{ .Type }}
+            </li>
+            {{ end }}
+        {{ end }}
+        </ul>
+    </li>
+    {{ else if eq . ".Kind" }}
+    <li class="pfilter-attr">
+        <span class="pfilter-attr-title">.Kind</span>
+        <ul class="pfilter-attr-val-list">
+        {{ range site.RegularPages }}
+            {{ if not (in $attrlist (print ".kind__" .Kind) )}}
+            {{ $attrlist = $attrlist | append (print ".kind__" .Kind ) }}
+            <li class="pfilter-attr-val" @click="toggle('.kind', '{{.Kind}}')" x-bind:class="checkActive(['{{(print ".kind__" (urlize .Kind))}}'])">
+                {{ .Kind }}
+            </li>
+            {{ end }}
+        {{ end }}
+        </ul>
+    </li>
+    {{ end }}
+{{ end }}
+</ul>
+<ul class="pfilter-attr-container">
+{{ range $term, $taxonomy := site.Taxonomies }}
+{{ if in $attrs $term }}
+<li class="pfilter-attr">
+    <span class="pfilter-attr-title">{{ $term }}</span>
+    <ul class="pfilter-attr-val-list">
+        {{ range $key, $value := $taxonomy }}
+        <li class="pfilter-attr-val" @click="toggle('{{$term}}', '{{$key}}')" x-bind:class="checkActive(['{{(print $term "__" (urlize $key))}}'])">
+            {{(site.GetPage (print $term "/" $key )).Title}}
+            {{ $attrlist = $attrlist | append (print $term "__" (urlize $key)) }}
+        </li>
+        {{ end }}
+    </ul>
+</li>
+    {{ end }}
+{{ end }}
+</ul>
+
+<ul class="pfilter-attr-container">
+    <li class="pfilter-attr-val attr-clear" @click="clear()" x-bind:class="checkActive(['{{(print ".section__" (urlize .Section))}}'])">
+        Clear Selection
+    </li>
+</ul>
+
+<hr>
