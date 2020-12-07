@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    {{ partialCached "jslibs/alpinejs/script-src.html" "-" }}
+
+    <style>
+        .is-hidden {
+            display: none;
+        }
+        .is-selected {
+            color: red
+        }
+    </style>
+    </head>
+    <body  class="pfilter-container">
+        <h1>Filter Demo</h1>
+        <div x-data="filtered()">
+            {{ $attrs := slice "tags" }}
+            {{ $attrlist := slice }}
+
+            <ul>
+                {{ range $term, $taxonomy := site.Taxonomies }}
+                {{ if in $attrs $term }}
+                    <li>
+                        <span>{{ $term }}</span>
+                        <ul>
+                            {{ range $key, $value := $taxonomy }}
+                            <li class="pfilter-attr-val" @click="toggle('{{$term}}', '{{$key}}')" x-bind:class="checkActive(['{{(print $term "__" (urlize $key))}}'])">
+                                {{(site.GetPage (print $term "/" $key )).Title}}
+                                {{ $attrlist = $attrlist | append (print $term "__" (urlize $key)) }}
+                            </li>
+                            {{ end }}
+                        </ul>
+                    </li>
+                {{ end }}
+                {{ end }}
+            </ul>
+
+            {{ $pages := site.RegularPages }}
+
+            {{ range $pages }}
+                {{ $page := . }}
+                {{ $pageattrs := slice }}
+                {{ range $attrs }}
+                    {{ if isset $page.Params . }}
+                        {{ $a := . }}
+                        {{ range (index $page.Params .)}}
+                            {{ $pageattrs = $pageattrs | append (print $a "__" (urlize .)) }}
+                        {{ end }}
+                    {{ end }}
+                {{ end }}
+        
+                <div x-bind:class="checkVisibility([{{range $pageattrs}}'{{.}}',{{end}}])">
+                    <div><a href="{{.Permalink}}">{{.Title}}</a></div>
+                </div>
+        
+            {{ end }}
+
+        </div>
+
+        {{$hideclass := "is-hidden"}}
+        <script>
+            function filtered(){
+            
+                
+                return {
+                    visible: [],
+                    checkVisibility(l) {
+                        if(this.visible.length == 0) {
+                            return ""
+                        } else {
+                            for(let i in l) {
+                                if (this.visible.indexOf(l[i]) > -1) {
+                                    return ""
+                                } 
+                            }
+                            return "{{$hideclass}}"
+                        }
+                    },
+                    checkActive(x){
+                        if(this.visible.length > 0 ) {
+                            if (this.visible.indexOf(x[0]) > -1 ) {
+                                return "is-selected"
+                            }
+                        }
+                        return ''
+                    },
+                    toggle(x,y) {
+                        console.log("TOGGLE:", x, y)
+                        let attr = x + "__" + y;
+                        let li = this.visible.indexOf(attr);
+                        if( li > -1 ) {
+                            this.visible.splice(li,1)
+                        } else {
+                            this.visible.push(attr)
+                        }
+            
+                    },
+                    clear(){
+                        this.visible = [];
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
+
