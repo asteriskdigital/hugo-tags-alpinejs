@@ -6,32 +6,32 @@
 <div class="pfilter-page-list-container">
 {{ range $pages }}
     {{ $page := . }}
-    {{ $elattrs := slice }}
+    {{ $pageattrs := slice }}
     {{ $ea := dict }}
     {{ range $attrs }}
         {{ if eq . ".Section" }}
             {{ with $page.Section }}
             {{ $ea = merge $ea (dict ".Section" (slice .) ) }}
-            {{ $elattrs = $elattrs | append (print ".section__" .) }}
+            {{ $pageattrs = $pageattrs | append (print ".section__" .) }}
             {{ end }}
         {{ else if eq . ".Type" }}
             {{ $ea = merge $ea (dict ".Type" (slice $page.Type) ) }}
-            {{ $elattrs = $elattrs | append (print ".type__" $page.Type) }}
+            {{ $pageattrs = $pageattrs | append (print ".type__" $page.Type) }}
         {{ else if eq . ".Kind" }}
             {{ $ea = merge $ea (dict ".Kind" (slice $page.Kind) ) }}
-            {{ $elattrs = $elattrs | append  (print ".kind__" $page.Kind) }}
+            {{ $pageattrs = $pageattrs | append  (print ".kind__" $page.Kind) }}
         {{ else }}
             {{ if isset $page.Params . }}
                 {{ $a := . }}
                 {{ $ea = merge $ea (dict . (index $page.Params .) ) }}
                 {{ range (index $page.Params .)}}
-                    {{ $elattrs = $elattrs | append (print $a "__" (urlize .)) }}
+                    {{ $pageattrs = $pageattrs | append (print $a "__" (urlize .)) }}
                 {{ end }}
             {{ end }}
         {{ end }}
     {{ end }}
 
-    <div class="pfilter-page-list-item" x-bind:class="checkVisibility([{{range $elattrs}}'{{.}}',{{end}}])">
+    <div class="pfilter-page-list-item" x-bind:class="checkVisibility([{{range $pageattrs}}'{{.}}',{{end}}])">
         <div class="pfilter-page-list-card">
 
             <div class="pfilter-page-list-card-title"><a href="{{.Permalink}}">{{.Title}}</a></div>
